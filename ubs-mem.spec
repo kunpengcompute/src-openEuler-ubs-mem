@@ -7,7 +7,7 @@
 Summary:        UBS-MEM Package
 Name:           ubs-mem
 Version:        1.0.0
-Release:        1
+Release:        2
 License:        MIT
 Group:          System Environment/Daemons
 Vendor:         Huawei Technologies Co., Ltd.
@@ -34,6 +34,7 @@ if [ ! -d "3rdparty/spdlog/.git" ]; then
 	git clone https://gitcode.com/GitHub_Trending/sp/spdlog.git 3rdparty/spdlog --depth=1
 fi
 
+export CI_BUILD=ON
 sh build.sh;
 
 %install
@@ -146,5 +147,7 @@ delete_semaphore
 
 %attr(644,root,root) /usr/lib/systemd/system/ubsmd.service
 %changelog
+* Wed Mar 25 2026 Yang Qi <yangqi124@h-partners.com> - 1.0.0-2
+- Reduce the number of cores required for compilation
 * Wed Mar 18 2026 Yang Qi <yangqi124@h-partners.com> - 1.0.0-1
 - Package init
