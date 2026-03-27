@@ -7,7 +7,7 @@
 Summary:        UBS-MEM Package
 Name:           ubs-mem
 Version:        1.0.0
-Release:        3
+Release:        4
 License:        MIT
 Group:          System Environment/Daemons
 Vendor:         Huawei Technologies Co., Ltd.
@@ -15,8 +15,8 @@ Prefix:         /usr/local/ubs_mem
 # generate tarball: git archive -o ubs-mem-1.0.0.tar.gz --format=tar.gz HEAD
 Source:        %{name}-%{version}.tar.gz
 BuildRequires:  rpm-build, make, cmake, gcc, gcc-c++, ninja-build
-BuildRequires:  libboundscheck, ubs-comm-devel, numactl-devel, systemd-devel
-Requires:       glibc libgcc libstdc++ libboundscheck ubs-comm-lib openssl-devel
+BuildRequires:  libboundscheck, ubs-comm-devel, numactl-devel, systemd-devel spdlog-devel
+Requires:       glibc libgcc libstdc++ libboundscheck ubs-comm-lib openssl-libs spdlog
 
 %define _rpmfilename %{Name}-memfabric-%{Version}-%{Release}.aarch64.rpm
 %define _unpackaged_files_terminate_build 0
@@ -28,11 +28,6 @@ This is UBServiceCore memory daemon.
 %setup -c -n %{name}-%{version}
 
 %build
-cd %{_builddir}/%{name}-%{version};
-if [ ! -d "3rdparty/spdlog/.git" ]; then
-	git clone https://gitcode.com/GitHub_Trending/sp/spdlog.git 3rdparty/spdlog --depth=1
-fi
-
 export CI_BUILD=ON
 sh build.sh;
 
@@ -146,6 +141,8 @@ delete_semaphore
 
 %attr(644,root,root) /usr/lib/systemd/system/ubsmd.service
 %changelog
+* Wed Mar 27 2026 Yang Qi <yangqi124@h-partners.com> - 1.0.0-4
+- Remove source code dependency on spdlog
 * Wed Mar 25 2026 Yang Qi <yangqi124@h-partners.com> - 1.0.0-3
 - Remove os_type
 * Wed Mar 25 2026 Yang Qi <yangqi124@h-partners.com> - 1.0.0-2
