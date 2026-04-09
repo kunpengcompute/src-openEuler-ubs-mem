@@ -7,7 +7,7 @@
 Summary:        UBS-MEM Package
 Name:           ubs-mem
 Version:        1.0.0
-Release:        4
+Release:        5
 License:        MIT
 Group:          System Environment/Daemons
 Vendor:         Huawei Technologies Co., Ltd.
@@ -18,7 +18,7 @@ BuildRequires:  rpm-build, make, cmake, gcc, gcc-c++, ninja-build
 BuildRequires:  libboundscheck, ubs-comm-devel, numactl-devel, systemd-devel spdlog-devel
 Requires:       glibc libgcc libstdc++ libboundscheck ubs-comm-lib openssl-libs spdlog
 
-%define _rpmfilename %{Name}-memfabric-%{Version}-%{Release}.aarch64.rpm
+%define _rpmfilename %{Name}-memfabric-%{Version}-%{Release}.%{_arch}.rpm
 %define _unpackaged_files_terminate_build 0
 
 %description
@@ -141,7 +141,9 @@ delete_semaphore
 
 %attr(644,root,root) /usr/lib/systemd/system/ubsmd.service
 %changelog
-* Wed Mar 27 2026 Yang Qi <yangqi124@h-partners.com> - 1.0.0-4
+* Thu Apr 16 2026 Yang Qi <yangqi124@h-partners.com> - 1.0.0-5
+- Bugfix
+* Fri Mar 27 2026 Yang Qi <yangqi124@h-partners.com> - 1.0.0-4
 - Remove source code dependency on spdlog
 * Wed Mar 25 2026 Yang Qi <yangqi124@h-partners.com> - 1.0.0-3
 - Remove os_type
