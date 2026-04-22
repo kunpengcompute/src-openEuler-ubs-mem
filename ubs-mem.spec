@@ -5,9 +5,9 @@
 # -*- rpm-spec -*-
 %define __strip /bin/true
 Summary:        UBS-MEM Package
-Name:           ubs-mem
+Name:           ubs-mem-kshmem
 Version:        1.0.0
-Release:        5
+Release:        6
 License:        MIT
 Group:          System Environment/Daemons
 Vendor:         Huawei Technologies Co., Ltd.
@@ -18,7 +18,6 @@ BuildRequires:  rpm-build, make, cmake, gcc, gcc-c++, ninja-build
 BuildRequires:  libboundscheck, ubs-comm-devel, numactl-devel, systemd-devel spdlog-devel
 Requires:       glibc libgcc libstdc++ libboundscheck ubs-comm-lib openssl-libs spdlog
 
-%define _rpmfilename %{Name}-memfabric-%{Version}-%{Release}.%{_arch}.rpm
 %define _unpackaged_files_terminate_build 0
 
 %description
@@ -141,6 +140,8 @@ delete_semaphore
 
 %attr(644,root,root) /usr/lib/systemd/system/ubsmd.service
 %changelog
+* Wed Apr 22 2026 Yang Qi <yangqi124@h-partners.com> - 1.0.0-6
+- change package name to ubs-mem-kshmem
 * Thu Apr 16 2026 Yang Qi <yangqi124@h-partners.com> - 1.0.0-5
 - Bugfix
 * Fri Mar 27 2026 Yang Qi <yangqi124@h-partners.com> - 1.0.0-4
