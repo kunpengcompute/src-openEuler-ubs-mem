@@ -5,23 +5,36 @@
 # -*- rpm-spec -*-
 %define __strip /bin/true
 Summary:        UBS-MEM Package
-Name:           ubs-mem-kshmem
+Name:           ubs-mem
 Version:        1.0.0
-Release:        6
-License:        MIT
+Release:        7
+License:        MulanPSL-2.0
 Group:          System Environment/Daemons
 Vendor:         Huawei Technologies Co., Ltd.
 Prefix:         /usr/local/ubs_mem
-# generate tarball: git archive -o ubs-mem-kshmem-1.0.0.tar.gz --format=tar.gz HEAD
-Source:        %{name}-%{version}.tar.gz
+ExclusiveArch:  aarch64
+# generate tarball: git archive -o ubs-mem-1.0.0.tar.gz --format=tar.gz HEAD
+Source:        ubs-mem-%{version}.tar.gz
 BuildRequires:  rpm-build, make, cmake, gcc, gcc-c++, ninja-build
-BuildRequires:  libboundscheck, ubs-comm-devel, numactl-devel, systemd-devel spdlog-devel
-Requires:       glibc libgcc libstdc++ libboundscheck ubs-comm-lib openssl-libs spdlog
+BuildRequires:  libboundscheck, ubs-comm-devel, numactl-devel, systemd-devel
+Requires:       %{name}-shmem = %{version}-%{release}
 
 %define _unpackaged_files_terminate_build 0
 
 %description
-This is UBServiceCore memory daemon.
+UBS Memory
+
+%package shmem
+Summary:        UBS-MEM Shared Memory subpackage
+Group:          System Environment/Daemons
+Requires:       glibc libgcc libstdc++ libboundscheck ubs-comm-lib openssl-libs
+Requires:       ubs-engine
+Requires:       ubs-engine-client-libs
+Provides:       ubs-mem-kshmem = %{version}-%{release}
+Obsoletes:      ubs-mem-kshmem < %{version}-%{release}
+
+%description shmem
+This package contains the shared memory components for ubs-mem.
 
 %prep
 %setup -c -n %{name}-%{version}
@@ -44,7 +57,7 @@ install -Dm 644 %{_builddir}/%{name}-%{version}/build/debug/output/script/ubsmd.
 %clean
 rm -rf %{buildroot}
 
-%pre
+%pre shmem
 create_user_and_group() {
     if ! getent group ubsmd > /dev/null; then
         groupadd --system ubsmd
@@ -68,7 +81,7 @@ stop_old_service() {
 create_user_and_group
 stop_old_service
 
-%post
+%post shmem
 create_log_directory() {
     mkdir -p /var/log/ubsm/
     chown -R ubsmd:ubsmd /var/log/ubsm
@@ -81,7 +94,7 @@ enable_service() {
 create_log_directory
 enable_service
 
-%preun
+%preun shmem
 stop_service() {
     systemctl stop ubsmd.service > /dev/null 2>&1 || :
     systemctl disable ubsmd.service > /dev/null 2>&1 || :
@@ -89,7 +102,7 @@ stop_service() {
 
 stop_service
 
-%postun
+%postun shmem
 if [ $1 -ne 0 ]; then # 0 means remove, 1 means update
     exit 0
 fi
@@ -120,7 +133,7 @@ remove_files() {
 remove_files
 delete_semaphore
 
-%files
+%files shmem
 %defattr(550,ubsmd,ubsmd,550)
 %dir %attr(750,ubsmd,ubsmd) /usr/local/ubs_mem
 
@@ -139,7 +152,13 @@ delete_semaphore
 %attr(640,ubsmd,ubsmd) /usr/local/ubs_mem/include/ubs_mem_def.h
 
 %attr(644,root,root) /usr/lib/systemd/system/ubsmd.service
+
+%files
+%defattr(-,root,root,-)
+
 %changelog
+* Wed May 20 2026 Yang Qi <yangqi124@h-partners.com> - 1.0.0-7
+- rename package to ubs-mem, add shmem subpackage, remove spdlog, add ubs-engine deps
 * Wed Apr 22 2026 Yang Qi <yangqi124@h-partners.com> - 1.0.0-6
 - change package name to ubs-mem-kshmem
 * Thu Apr 16 2026 Yang Qi <yangqi124@h-partners.com> - 1.0.0-5
