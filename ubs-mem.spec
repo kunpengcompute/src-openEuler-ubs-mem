@@ -7,7 +7,7 @@
 Summary:        UBS-MEM Package
 Name:           ubs-mem
 Version:        1.0.0
-Release:        7
+Release:        8
 License:        MulanPSL-2.0
 Group:          System Environment/Daemons
 Vendor:         Huawei Technologies Co., Ltd.
@@ -157,7 +157,9 @@ delete_semaphore
 %defattr(-,root,root,-)
 
 %changelog
-* Thu May 21 2026 Yang Qi <yangqi124@h-partners.com> - 1.0.0-7
+* Tue May 26 2026 Yang Qi <yangqi124@h-partners.com> - 1.0.0-8
+- update version to 1.0.0-8
+* Wed May 20 2026 Yang Qi <yangqi124@h-partners.com> - 1.0.0-7
 - rename package to ubs-mem, add shmem subpackage, remove spdlog, add ubs-engine deps
 * Wed Apr 22 2026 Yang Qi <yangqi124@h-partners.com> - 1.0.0-6
 - change package name to ubs-mem-kshmem
