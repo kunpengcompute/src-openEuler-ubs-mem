@@ -7,7 +7,7 @@
 Summary:        UBS-MEM Package
 Name:           ubs-mem
 Version:        1.0.0
-Release:        8
+Release:        9
 License:        MulanPSL-2.0
 Group:          System Environment/Daemons
 Vendor:         Huawei Technologies Co., Ltd.
@@ -157,6 +157,8 @@ delete_semaphore
 %defattr(-,root,root,-)
 
 %changelog
+* Wed Jun  3 2026 Yang Qi <yangqi124@h-partners.com> - 1.0.0-9
+- update version to 1.0.0-9
 * Tue May 26 2026 Yang Qi <yangqi124@h-partners.com> - 1.0.0-8
 - update version to 1.0.0-8
 * Wed May 20 2026 Yang Qi <yangqi124@h-partners.com> - 1.0.0-7
