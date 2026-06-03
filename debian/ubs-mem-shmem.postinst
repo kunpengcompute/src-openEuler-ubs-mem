@@ -1,0 +1,24 @@
+#!/bin/bash
+set -e
+
+set_ownership() {
+    chown -R ubsmd:ubsmd /usr/local/ubs_mem 2>/dev/null || true
+}
+
+create_log_directory() {
+    mkdir -p /var/log/ubsm/
+    chown -R ubsmd:ubsmd /var/log/ubsm 2>/dev/null || true
+}
+
+enable_service() {
+    systemctl daemon-reload > /dev/null 2>&1 || true
+    systemctl enable ubsmd.service > /dev/null 2>&1 || true
+}
+
+case "$1" in
+    configure)
+        set_ownership
+        create_log_directory
+        enable_service
+        ;;
+esac

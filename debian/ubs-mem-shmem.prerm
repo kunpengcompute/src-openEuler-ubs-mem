@@ -1,0 +1,13 @@
+#!/bin/bash
+set -e
+
+stop_service() {
+    systemctl stop ubsmd.service 2>/dev/null || true
+    systemctl disable ubsmd.service 2>/dev/null || true
+}
+
+case "$1" in
+    remove|upgrade|deconfigure)
+        stop_service
+        ;;
+esac

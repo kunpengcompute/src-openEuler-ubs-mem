@@ -1,0 +1,54 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE=1
+export CI_BUILD=ON
+export DEB_BUILD_MAINT_OPTIONS=optimize=-lto
+
+%:
+	dh $@
+
+override_dh_auto_clean:
+	@echo ">>> Cleaning build..."
+	rm -rf build
+
+override_dh_auto_configure:
+	@echo ">>> Skip configure"
+
+override_dh_auto_build:
+	@echo ">>> Building project..."
+	DEB_MULTIARCH=$$(dpkg-architecture -qDEB_HOST_MULTIARCH); \
+	bash build.sh -t relwithdebinfo -f "-DARCH_LIB_DIR=/usr/lib/$$DEB_MULTIARCH -DSYS_LIB_DIR=/usr/lib"
+
+override_dh_auto_test:
+	@echo ">>> Skip test"
+
+override_dh_auto_install:
+	@echo ">>> Installing to debian tmp directories..."
+
+	install -Dm550 build/relwithdebinfo/output/bin/ubsmd \
+		debian/tmp/usr/local/ubs_mem/bin/ubsmd
+	install -Dm550 build/relwithdebinfo/output/lib/libubsm_sdk.so \
+		debian/tmp/usr/local/ubs_mem/lib/libubsm_sdk.so
+	install -Dm550 build/relwithdebinfo/output/lib/libubsmd.so \
+		debian/tmp/usr/local/ubs_mem/lib/libubsmd.so
+	install -Dm640 build/relwithdebinfo/output/config/ubsmd.conf \
+		debian/tmp/usr/local/ubs_mem/config/ubsmd.conf
+	install -Dm640 build/relwithdebinfo/output/include/ubs_mem.h \
+		debian/tmp/usr/local/ubs_mem/include/ubs_mem.h
+	install -Dm640 build/relwithdebinfo/output/include/ubs_mem_def.h \
+		debian/tmp/usr/local/ubs_mem/include/ubs_mem_def.h
+	install -Dm644 build/relwithdebinfo/output/script/ubsmd.service \
+		debian/tmp/usr/lib/systemd/system/ubsmd.service
+	MULTIARCH=$$(dpkg-architecture -qDEB_HOST_MULTIARCH); \
+	sed -i "s|^Environment=LD_LIBRARY_PATH=|\0/usr/lib/$$MULTIARCH:|" \
+		debian/tmp/usr/lib/systemd/system/ubsmd.service
+
+override_dh_shlibdeps:
+	dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info
+
+override_dh_usrlocal:
+	@echo ">>> Skip dh_usrlocal"
+
+override_dh_fixperms:
+	@echo ">>> Skip dh_fixperms (perms set by install)"
+
