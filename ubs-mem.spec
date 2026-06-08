@@ -6,14 +6,14 @@
 %define __strip /bin/true
 Summary:        UBS-MEM Package
 Name:           ubs-mem
-Version:        1.0.0
-Release:        9
+Version:        1.0.1
+Release:        1
 License:        MulanPSL-2.0
 Group:          System Environment/Daemons
 Vendor:         Huawei Technologies Co., Ltd.
 Prefix:         /usr/local/ubs_mem
 ExclusiveArch:  aarch64
-# generate tarball: git archive -o ubs-mem-1.0.0.tar.gz --format=tar.gz HEAD
+# generate tarball: git archive -o ubs-mem-1.0.1.tar.gz --format=tar.gz HEAD
 Source:        ubs-mem-%{version}.tar.gz
 BuildRequires:  rpm-build, make, cmake, gcc, gcc-c++, ninja-build
 BuildRequires:  libboundscheck, ubs-comm-devel, numactl-devel, systemd-devel
@@ -41,18 +41,18 @@ This package contains the shared memory components for ubs-mem.
 
 %build
 export CI_BUILD=ON
-sh build.sh;
+sh build.sh -t relwithdebinfo
 
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/local/ubs_mem/{lib,bin,script,config,include}
-install -m 550 %{_builddir}/%{name}-%{version}/build/debug/output/lib/libubsm_sdk.so %{buildroot}/usr/local/ubs_mem/lib/
-install -m 550 %{_builddir}/%{name}-%{version}/build/debug/output/lib/libubsmd.so %{buildroot}/usr/local/ubs_mem/lib/
-install -m 550 %{_builddir}/%{name}-%{version}/build/debug/output/bin/ubsmd %{buildroot}/usr/local/ubs_mem/bin/
-install -m 640 %{_builddir}/%{name}-%{version}/build/debug/output/config/ubsmd.conf %{buildroot}/usr/local/ubs_mem/config/
-install -m 640 %{_builddir}/%{name}-%{version}/build/debug/output/include/ubs_mem.h %{buildroot}/usr/local/ubs_mem/include/
-install -m 640 %{_builddir}/%{name}-%{version}/build/debug/output/include/ubs_mem_def.h %{buildroot}/usr/local/ubs_mem/include/
-install -Dm 644 %{_builddir}/%{name}-%{version}/build/debug/output/script/ubsmd.service %{buildroot}/usr/lib/systemd/system/ubsmd.service
+install -m 550 %{_builddir}/%{name}-%{version}/build/relwithdebinfo/output/lib/libubsm_sdk.so %{buildroot}/usr/local/ubs_mem/lib/
+install -m 550 %{_builddir}/%{name}-%{version}/build/relwithdebinfo/output/lib/libubsmd.so %{buildroot}/usr/local/ubs_mem/lib/
+install -m 550 %{_builddir}/%{name}-%{version}/build/relwithdebinfo/output/bin/ubsmd %{buildroot}/usr/local/ubs_mem/bin/
+install -m 640 %{_builddir}/%{name}-%{version}/build/relwithdebinfo/output/config/ubsmd.conf %{buildroot}/usr/local/ubs_mem/config/
+install -m 640 %{_builddir}/%{name}-%{version}/build/relwithdebinfo/output/include/ubs_mem.h %{buildroot}/usr/local/ubs_mem/include/
+install -m 640 %{_builddir}/%{name}-%{version}/build/relwithdebinfo/output/include/ubs_mem_def.h %{buildroot}/usr/local/ubs_mem/include/
+install -Dm 644 %{_builddir}/%{name}-%{version}/build/relwithdebinfo/output/script/ubsmd.service %{buildroot}/usr/lib/systemd/system/ubsmd.service
 
 %clean
 rm -rf %{buildroot}
@@ -157,6 +157,8 @@ delete_semaphore
 %defattr(-,root,root,-)
 
 %changelog
+* Mon Jun  8 2026 Yang Qi <yangqi124@h-partners.com> - 1.0.1-1
+- update version to 1.0.1-1
 * Wed Jun  3 2026 Yang Qi <yangqi124@h-partners.com> - 1.0.0-9
 - update version to 1.0.0-9
 * Tue May 26 2026 Yang Qi <yangqi124@h-partners.com> - 1.0.0-8
