@@ -28,3 +28,5 @@ case "$1" in
         create_user_and_group
         ;;
 esac
+
+#DEBHELPER#

@@ -1,3 +1,27 @@
+ubs-mem (1.0.0-12) unstable; urgency=medium
+
+  * fix lintian compliance issues for deb packaging
+
+ -- Yang Qi <yangqi124@h-partners.com>  Mon, 27 Jul 2026 00:00:00 +0800
+
+ubs-mem (1.0.0-11) unstable; urgency=medium
+
+  * sync openeuler-2403-lts-sp4 into openeuler-2403-lts-sp3
+
+ -- Yang Qi <yangqi124@h-partners.com>  Fri, 26 Jun 2026 00:00:00 +0800
+
+ubs-mem (1.0.0-10) unstable; urgency=medium
+
+  * update version to 1.0.0-10
+
+ -- Yang Qi <yangqi124@h-partners.com>  Fri, 05 Jun 2026 00:00:00 +0800
+
+ubs-mem (1.0.0-9) unstable; urgency=medium
+
+  * update version to 1.0.0-9
+
+ -- Yang Qi <yangqi124@h-partners.com>  Wed, 03 Jun 2026 00:00:00 +0800
+
 ubs-mem (1.0.0-8) unstable; urgency=medium
 
   * update version to 1.0.0-8

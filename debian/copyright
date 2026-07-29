@@ -1,0 +1,88 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: ubs-mem
+Upstream-Contact: Yang Qi <yangqi124@h-partners.com>
+Source: https://gitcode.com/src-openeuler/ubs-mem
+
+Files: *
+Copyright: 2026 Huawei Technologies Co., Ltd.
+License: MulanPSL-2.0
+
+Files: debian/*
+Copyright: 2026 Huawei Technologies Co., Ltd.
+License: MulanPSL-2.0
+
+License: MulanPSL-2.0
+ Mulan Permissive Software License, Version 2 (Mulan PSL v2)
+ .
+ Your reproduction, use, modification and distribution of the Software shall
+ be subject to Mulan PSL v2 (this License) with the following terms and
+ conditions:
+ .
+ 0. Definitions
+ .
+ "Software" means the original or modified software and its related
+ documentation.
+ .
+ "Contributor" means any individual or legal entity that contributes to the
+ Software.
+ .
+ "Contribution" means any original or modified work contributed to the
+ Software by a Contributor.
+ .
+ "Open Source Software" means any software that is licensed under a license
+ that meets the Open Source Definition by the Open Source Initiative (OSI).
+ .
+ "Derivative Work" means any derivative work of the Software that is created
+ by combining, adapting, or translating the Software, or that is based on the
+ Software.
+ .
+ "Recipients" means any individual or legal entity that receives the Software
+ under this License.
+ .
+ 1. Grant of Copyright License
+ .
+ Subject to the terms and conditions of this License, each Contributor hereby
+ grants to Recipients a perpetual, worldwide, non-exclusive, royalty-free
+ copyright license to reproduce, use, modify, distribute, sub-license, and
+ prepare Derivative Works of the Software.
+ .
+ 2. Grant of Patent License
+ .
+ Subject to the terms and conditions of this License, each Contributor hereby
+ grants to Recipients a perpetual, worldwide, non-exclusive, royalty-free
+ patent license to make, use, sell, offer to sell, import, and otherwise
+ transfer the Software, where such license applies only to the patent claims
+ owned or controlled by the Contributor that are necessarily infringed by the
+ Contribution(s) made by the Contributor.
+ .
+ 3. No Trademark License
+ .
+ No trademark license is granted under this License, except as necessary to
+ enable the Recipients to exercise the rights granted under this License.
+ .
+ 4. No Warranty
+ .
+ The Software is provided "as is" without any warranty of any kind, either
+ express or implied, including but not limited to the warranties of
+ merchantability, fitness for a particular purpose, and non-infringement. In
+ no event shall the Contributors or Copyright Holders be liable for any claim,
+ damages, or other liability, whether in an action of contract, tort or
+ otherwise, arising from, out of, or in connection with the Software or the use
+ or other dealings with the Software.
+ .
+ 5. Limitation of Liability
+ .
+ To the maximum extent permitted by applicable law, in no event shall the
+ Contributors or Copyright Holders be liable for any indirect, incidental,
+ consequential, special, or exemplary damages, or any other commercial losses
+ or damages, arising out of or in connection with the Software, even if advised
+ of the possibility of such damages.
+ .
+ 6. Language
+ .
+ This License is written in both English and Chinese. If there is any
+ inconsistency or conflict between the English and Chinese versions, the
+ English version shall prevail.
+ .
+ You should have received a copy of the Mulan PSL v2 along with this program.
+ If not, see <http://license.coscl.org.cn/MulanPSL2>.

@@ -1,7 +1,7 @@
 Source: ubs-mem
 Section: admin
 Priority: optional
-Maintainer: Huawei Technologies Co., Ltd.
+Maintainer: Yang Qi <yangqi124@h-partners.com>
 Build-Depends: debhelper-compat (= 12),
                cmake (>= 3.22),
                make (>= 4.3),
@@ -14,15 +14,17 @@ Build-Depends: debhelper-compat (= 12),
                libssl-dev,
                ubs-comm-dev
 Standards-Version: 4.5.1
+Rules-Requires-Root: no
 Homepage: https://gitcode.com/src-openeuler/ubs-mem
 
 Package: ubs-mem
 Architecture: any
 Depends: ${misc:Depends},
          ubs-mem-shmem (= ${binary:Version})
-Description: UBS Memory
- UBS Memory daemon service.
- Provides shared memory components for the UBS ecosystem.
+Description: UBS Memory (meta-package)
+ This is a meta-package that depends on ubs-mem-shmem, which contains
+ the UBS memory daemon service and shared memory components for the
+ UBS ecosystem.
 
 Package: ubs-mem-shmem
 Architecture: any

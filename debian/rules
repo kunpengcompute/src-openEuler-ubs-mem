@@ -46,6 +46,9 @@ override_dh_auto_install:
 override_dh_shlibdeps:
 	dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info
 
+override_dh_installsystemd:
+	dh_installsystemd --no-start
+
 override_dh_usrlocal:
 	@echo ">>> Skip dh_usrlocal"
 

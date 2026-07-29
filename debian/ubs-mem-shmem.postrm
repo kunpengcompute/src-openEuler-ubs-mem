@@ -19,16 +19,17 @@ delete_semaphore() {
 }
 
 remove_files() {
-    systemctl daemon-reload > /dev/null 2>&1 || true
     rm -f /usr/lib/systemd/system/ubsmd.service
     rm -rf /usr/local/ubs_mem
     rm -f /dev/shm/ubsm_records
     rm -rf /run/matrix/
 }
 
-if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
-    remove_files
-    delete_semaphore
-fi
+case "$1" in
+    remove|purge)
+        remove_files
+        delete_semaphore
+        ;;
+esac
 
-systemctl daemon-reload 2>/dev/null || true
+#DEBHELPER#
