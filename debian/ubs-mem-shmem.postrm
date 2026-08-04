@@ -20,7 +20,9 @@ delete_semaphore() {
 
 remove_files() {
     rm -f /usr/lib/systemd/system/ubsmd.service
-    rm -rf /usr/local/ubs_mem
+    rm -f /usr/bin/ubsmd
+    rm -rf /usr/lib/ubs_mem /etc/ubs_mem /usr/include/ubs_mem
+    rm -f /usr/lib/aarch64-linux-gnu/libubsm_sdk.so
     rm -f /dev/shm/ubsm_records
     rm -rf /run/matrix/
 }
