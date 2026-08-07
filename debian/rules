@@ -26,21 +26,22 @@ override_dh_auto_install:
 	@echo ">>> Installing to debian tmp directories..."
 
 	install -Dm550 build/relwithdebinfo/output/bin/ubsmd \
-		debian/tmp/usr/local/ubs_mem/bin/ubsmd
-	install -Dm550 build/relwithdebinfo/output/lib/libubsm_sdk.so \
-		debian/tmp/usr/local/ubs_mem/lib/libubsm_sdk.so
-	install -Dm550 build/relwithdebinfo/output/lib/libubsmd.so \
-		debian/tmp/usr/local/ubs_mem/lib/libubsmd.so
+		debian/tmp/usr/bin/ubsmd
+	install -Dm440 build/relwithdebinfo/output/lib/libubsm_sdk.so \
+		debian/tmp/usr/lib/aarch64-linux-gnu/libubsm_sdk.so
+	install -Dm440 build/relwithdebinfo/output/lib/libubsmd.so \
+		debian/tmp/usr/lib/ubs_mem/libubsmd.so
 	install -Dm640 build/relwithdebinfo/output/config/ubsmd.conf \
-		debian/tmp/usr/local/ubs_mem/config/ubsmd.conf
+		debian/tmp/etc/ubs_mem/ubsmd.conf
 	install -Dm640 build/relwithdebinfo/output/include/ubs_mem.h \
-		debian/tmp/usr/local/ubs_mem/include/ubs_mem.h
+		debian/tmp/usr/include/ubs_mem/ubs_mem.h
 	install -Dm640 build/relwithdebinfo/output/include/ubs_mem_def.h \
-		debian/tmp/usr/local/ubs_mem/include/ubs_mem_def.h
+		debian/tmp/usr/include/ubs_mem/ubs_mem_def.h
 	install -Dm644 build/relwithdebinfo/output/script/ubsmd.service \
 		debian/tmp/usr/lib/systemd/system/ubsmd.service
-	MULTIARCH=$$(dpkg-architecture -qDEB_HOST_MULTIARCH); \
-	sed -i "s|^Environment=LD_LIBRARY_PATH=|\0/usr/lib/$$MULTIARCH:|" \
+	sed -i \
+		-e "s|^Environment=.*|Environment=LD_LIBRARY_PATH=/usr/lib/ubs_mem:/usr/lib/aarch64-linux-gnu|" \
+		-e "s|^ExecStart=.*|ExecStart=/usr/bin/ubsmd --runtime=/usr/lib/ubs_mem --config=/etc/ubs_mem/ubsmd.conf|" \
 		debian/tmp/usr/lib/systemd/system/ubsmd.service
 
 override_dh_shlibdeps:
@@ -49,9 +50,5 @@ override_dh_shlibdeps:
 override_dh_installsystemd:
 	dh_installsystemd --no-start
 
-override_dh_usrlocal:
-	@echo ">>> Skip dh_usrlocal"
-
 override_dh_fixperms:
 	@echo ">>> Skip dh_fixperms (perms set by install)"
-

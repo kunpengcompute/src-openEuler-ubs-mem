@@ -1,0 +1,2 @@
+debian/** text eol=lf
+debian/patches/*.patch whitespace=-blank-at-eol

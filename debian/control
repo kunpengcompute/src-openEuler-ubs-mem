@@ -18,7 +18,7 @@ Rules-Requires-Root: no
 Homepage: https://gitcode.com/src-openeuler/ubs-mem
 
 Package: ubs-mem
-Architecture: any
+Architecture: arm64
 Depends: ${misc:Depends},
          ubs-mem-shmem (= ${binary:Version})
 Description: UBS Memory (meta-package)
@@ -27,7 +27,7 @@ Description: UBS Memory (meta-package)
  UBS ecosystem.
 
 Package: ubs-mem-shmem
-Architecture: any
+Architecture: arm64
 Depends: libc6 (>= 2.31),
          libstdc++6,
          systemd,

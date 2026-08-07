@@ -1,0 +1,397 @@
+diff --git a/src/process/common/util/conf_constants.h b/src/process/common/util/conf_constants.h
+index 24e3799..4ae2f60 100644
+--- a/src/process/common/util/conf_constants.h
++++ b/src/process/common/util/conf_constants.h
+@@ -28,7 +28,8 @@ const auto MXMD_SERVER_AUDIT_LOG_ROTATION_FILE_SIZE = std::make_pair("ubsm.serve
+ const auto MXMD_SERVER_AUDIT_LOG_ROTATION_FILE_COUNT = std::make_pair("ubsm.server.audit.log.rotation.file.count", 10);
+ 
+ const auto MXMD_FEATURES_ENABLE = std::make_pair("mxmd.features.enable", "ubsmd");
+-const auto MXMD_DAEMON_BINPATH = std::make_pair("mxmd.daemon.binpath", "-binpath=");
++const auto MXMD_DAEMON_RUNTIME = std::make_pair("mxmd.daemon.runtime", "--runtime=");
++const auto MXMD_DAEMON_CONFIG = std::make_pair("mxmd.daemon.config", "--config=");
+ const auto MXMD_LOCK_DEV_NAME = std::make_pair("ubsm.lock.dev.name", "bonding_dev_0");
+ const auto MXMD_LOCK_DEV_EID = std::make_pair("ubsm.lock.dev.eid", "0000:0000:0000:1000:0010:0000:df00:0404");
+ const auto MXMD_LOCK_EXPIRE_TIME = std::make_pair("ubsm.lock.expire.time", 300);
+diff --git a/src/process/common/util/configuration.h b/src/process/common/util/configuration.h
+index 9681cad..b35d194 100644
+--- a/src/process/common/util/configuration.h
++++ b/src/process/common/util/configuration.h
+@@ -128,6 +128,8 @@ private:
+     void LoadDefault()
+     {
+         using namespace ConfConstant;
++        AddStrConf(MXMD_DAEMON_RUNTIME, VNoCheck::Create(), 0);
++        AddStrConf(MXMD_DAEMON_CONFIG, VNoCheck::Create(), 0);
+         AddPathConf(MXMD_SERVER_LOG_PATH, VPathAccess::Create(MXMD_SERVER_LOG_PATH.first, R_OK | W_OK | X_OK));
+         AddStrConf(MXMD_SERVER_LOG_LEVEL,
+                    VStrEnum::Create(MXMD_SERVER_LOG_LEVEL.first, "DEBUG||INFO||WARN||ERROR||CRITICAL"));
+@@ -202,8 +204,10 @@ private:
+     std::vector<std::string> mLoadDefaultErrors;
+ 
+     std::vector<std::string> mPathConfs;
+-    std::vector<std::string> mExceptPrintConfs{ConfConstant::MXMD_DAEMON_BINPATH.first};
+-    std::vector<std::string> mInvalidSetConfs{ConfConstant::MXMD_DAEMON_BINPATH.first};
++    std::vector<std::string> mExceptPrintConfs{ConfConstant::MXMD_DAEMON_RUNTIME.first,
++                                               ConfConstant::MXMD_DAEMON_CONFIG.first};
++    std::vector<std::string> mInvalidSetConfs{ConfConstant::MXMD_DAEMON_RUNTIME.first,
++                                              ConfConstant::MXMD_DAEMON_CONFIG.first};
+ 
+     bool mInitialized = false;
+     Lock mLock;
+diff --git a/src/process/daemon/main.cpp b/src/process/daemon/main.cpp
+index 3977823..b5c80c3 100644
+--- a/src/process/daemon/main.cpp
++++ b/src/process/daemon/main.cpp
+@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
+         std::cerr << "Failed to new ock daemon, maybe out of memory" << std::endl;
+         return ERROR_EXIT_CODE;
+     }
+-    if (daemon->CheckParam(argv[BIN_PATH_POSITION]) != 0) {
++    if (daemon->CheckParam(argv[RUNTIME_PATH_POSITION], argv[CONFIG_PATH_POSITION]) != 0) {
+         daemon.Set(nullptr);
+         return ERROR_EXIT_CODE;
+     }
+diff --git a/src/process/daemon/ock_daemon.cpp b/src/process/daemon/ock_daemon.cpp
+index da56c47..c350993 100644
+--- a/src/process/daemon/ock_daemon.cpp
++++ b/src/process/daemon/ock_daemon.cpp
+@@ -12,6 +12,7 @@
+ #include "ock_daemon.h"
+ #include <fcntl.h>
+ #include <sys/mman.h>
++#include <sys/stat.h>
+ #include <syslog.h>
+ #include <unistd.h>
+ #include <algorithm>
+@@ -27,6 +28,7 @@
+ #include "record_store.h"
+ #include "rpc_server.h"
+ #include "ubs_common_config.h"
++#include "ubs_cryptor_handler.h"
+ #include "ubs_mem_monitor.h"
+ #include "ubse_mem_adapter.h"
+ #include "ubsm_lock.h"
+@@ -46,8 +48,10 @@ using namespace ock::rpc::service;
+ using namespace ock::dlock_utils;
+ OCKDaemonPtr OckDaemon::mDaemon = nullptr;
+ 
+-const auto DAEMON_CONF_FILE = std::string("ubsmd.conf");
+-const auto BIN_PATH_HEADER = std::string("-binpath=");
++const auto RUNTIME_PATH_HEADER = std::string("--runtime=");
++const auto CONFIG_PATH_HEADER = std::string("--config=");
++const auto PID_FILE_PATH = std::string("/run/matrix/ockd.pid");
++const auto DECRYPT_LIB_NAME = std::string("libdecrypt.so");
+ constexpr int MB_MULTIPLER = 1024 * 1024;
+ OckDaemon::OckDaemon() : mHtracerEnable(false)
+ {
+@@ -63,46 +67,74 @@ OckDaemon::~OckDaemon()
+     mDaemon = nullptr;
+ }
+ 
+-HRESULT OckDaemon::CheckParam(const std::string &binPath)
++HRESULT OckDaemon::CheckParam(const std::string &runtimePath, const std::string &configPath)
+ {
+-    if (CheckBinPath(binPath.c_str()) != 0) {
++    if (CheckRuntimePath(runtimePath.c_str()) != 0) {
+         return HFAIL;
+     }
++    if (CheckConfigPath(configPath.c_str()) != 0) {
++        return HFAIL;
++    }
++    ock::ubsm::UbsCryptorHandler::GetInstance().SetDecryptLibPath(mRuntimePath + "/" + DECRYPT_LIB_NAME);
++    return HOK;
++}
++
++HRESULT OckDaemon::CheckRuntimePath(const char *runtimePath)
++{
++    if (runtimePath == nullptr || strncmp(runtimePath, RUNTIME_PATH_HEADER.c_str(), RUNTIME_PATH_HEADER.size()) != 0) {
++        std::cerr << "Parameter runtime input format error." << std::endl;
++        return HFAIL;
++    }
++    runtimePath += RUNTIME_PATH_HEADER.size();
++    if (strnlen(runtimePath, PATH_MAX) == PATH_MAX) {
++        std::cerr << "Runtime path size exceeds maximum limit." << std::endl;
++        return HFAIL;
++    }
++    char realRuntimePath[PATH_MAX] = {0x00};
++    struct stat runtimeStat {
++    };
++    if (realpath(runtimePath, realRuntimePath) == nullptr || stat(realRuntimePath, &runtimeStat) != 0 ||
++        !S_ISDIR(runtimeStat.st_mode)) {
++        std::cerr << "The runtime path cannot be accessed." << std::endl;
++        return HFAIL;
++    }
++    mRuntimePath = std::string(realRuntimePath);
+     return HOK;
+ }
+ 
+-HRESULT OckDaemon::CheckBinPath(const char *binPath)
++HRESULT OckDaemon::CheckConfigPath(const char *configPath)
+ {
+-    if (binPath == nullptr) {
+-        std::cerr << "Failed to get binpath." << std::endl;
++    if (configPath == nullptr) {
++        std::cerr << "Failed to get config path." << std::endl;
+         return HFAIL;
+     }
+-    if (strncmp(binPath, BIN_PATH_HEADER.c_str(), BIN_PATH_HEADER.size()) != 0) {
+-        std::cerr << "Parameter binpath input format error." << std::endl;
++    if (strncmp(configPath, CONFIG_PATH_HEADER.c_str(), CONFIG_PATH_HEADER.size()) != 0) {
++        std::cerr << "Parameter config input format error." << std::endl;
+         return HFAIL;
+     }
+-    binPath += BIN_PATH_HEADER.size();
+-    if (strnlen(binPath, PATH_MAX) == PATH_MAX) {
+-        std::cerr << "Binpath size exceeds maximum limit." << std::endl;
++    configPath += CONFIG_PATH_HEADER.size();
++    if (strnlen(configPath, PATH_MAX) == PATH_MAX) {
++        std::cerr << "Config path size exceeds maximum limit." << std::endl;
+         return HFAIL;
+     }
+-    char realBinPath[PATH_MAX + 1] = {0x00};
+-    if (realpath(binPath, realBinPath) == nullptr) {
+-        std::cerr << "The binpath input is not accessible." << std::endl;
++    char realConfigPath[PATH_MAX] = {0x00};
++    if (realpath(configPath, realConfigPath) == nullptr) {
++        std::cerr << "The config path is not accessible." << std::endl;
+         return HFAIL;
+     }
+-    if (!OckFileDirExists(realBinPath)) {
+-        std::cerr << "The binpath input cannot be accessed." << std::endl;
++    struct stat configStat {
++    };
++    if (stat(realConfigPath, &configStat) != 0 || !S_ISREG(configStat.st_mode)) {
++        std::cerr << "The config path cannot be accessed." << std::endl;
+         return HFAIL;
+     }
+-    mHomePath = std::string(realBinPath);
++    mConfigPath = std::string(realConfigPath);
+     return HOK;
+ }
+ 
+ HRESULT OckDaemon::GetConfPath(std::string &confPath)
+ {
+-    confPath = mHomePath;
+-    confPath += "/config/" + DAEMON_CONF_FILE;
++    confPath = mConfigPath;
+     if (!OckFileDirExists(confPath)) {
+         std::cerr << "Configuration file <" << confPath << "> doesn't exist" << std::endl;
+         return HFAIL;
+@@ -124,11 +156,11 @@ HRESULT OckDaemon::LoadDaemonConf()
+         return HFAIL;
+     }
+     if (ValidateConfiguration(confPath) != 0) {
+-        std::cerr << "Configuration invalid, please check <" << DAEMON_CONF_FILE << ">" << std::endl;
++        std::cerr << "Configuration invalid, please check <" << confPath << ">" << std::endl;
+         return HFAIL;
+     }
+-    std::string binPathArg = BIN_PATH_HEADER + mHomePath;
+-    mConf->Set(ock::common::ConfConstant::MXMD_DAEMON_BINPATH.first, binPathArg);
++    mConf->Set(ock::common::ConfConstant::MXMD_DAEMON_RUNTIME.first, RUNTIME_PATH_HEADER + mRuntimePath);
++    mConf->Set(ock::common::ConfConstant::MXMD_DAEMON_CONFIG.first, CONFIG_PATH_HEADER + mConfigPath);
+     return HOK;
+ }
+ 
+@@ -213,7 +245,7 @@ HRESULT OckDaemon::InitDaemonService()
+     std::string serviceConf = std::string(ock::common::ConfConstant::MXMD_FEATURES_ENABLE.second);
+     std::vector<std::string> splitStrings;
+     SplitStr(serviceConf, "|", splitStrings);
+-    return serviceManager->ServicePut(splitStrings, mHomePath);
++    return serviceManager->ServicePut(splitStrings, mRuntimePath);
+ }
+ 
+ HRESULT OckDaemon::InitHandler()
+@@ -289,7 +321,7 @@ HRESULT OckDaemon::ServicesInitialize()
+ 
+ HRESULT OckDaemon::Initialize()
+ {
+-    if (mHomePath.empty()) {
++    if (mRuntimePath.empty() || mConfigPath.empty()) {
+         std::cerr << "Cannot initialize OckDaemon without checking parameters." << std::endl;
+         return HFAIL;
+     }
+@@ -588,9 +620,7 @@ HRESULT OckDaemon::StartServices()
+         return hr;
+     }
+ 
+-    std::string pidFilePath = mHomePath;
+-    pidFilePath += "/work/pids/ockd.pid";
+-    std::ofstream fout(pidFilePath.c_str());
++    std::ofstream fout(PID_FILE_PATH);
+     fout << getpid() << std::endl;
+     fout << std::flush;
+     fout.close();
+diff --git a/src/process/daemon/ock_daemon.h b/src/process/daemon/ock_daemon.h
+index e5d3546..2e925f7 100644
+--- a/src/process/daemon/ock_daemon.h
++++ b/src/process/daemon/ock_daemon.h
+@@ -26,14 +26,15 @@
+ 
+ namespace ock {
+ namespace daemon {
+-constexpr int ARGS_NUM = 2;
+-constexpr int BIN_PATH_POSITION = 1;
++constexpr int ARGS_NUM = 3;
++constexpr int RUNTIME_PATH_POSITION = 1;
++constexpr int CONFIG_PATH_POSITION = 2;
+ class OckDaemon : public ock::common::Referable {
+ public:
+     OckDaemon();
+     ~OckDaemon() override;
+ 
+-    HRESULT CheckParam(const std::string &binPath);
++    HRESULT CheckParam(const std::string &runtimePath, const std::string &configPath);
+     HRESULT Initialize();
+     HRESULT Start(const std::chrono::time_point<std::chrono::steady_clock> &start);
+     void TryStop();
+@@ -63,7 +64,8 @@ private:
+ 
+     HpcServiceManagerPtr serviceManager = nullptr;
+     ock::common::ConfigurationPtr mConf = nullptr;
+-    std::string mHomePath = "";
++    std::string mRuntimePath = "";
++    std::string mConfigPath = "";
+ 
+     enum KeepAliveStatus : int {
+         KEEP_ALIVE_IDLE,
+@@ -80,7 +82,8 @@ private:
+     HRESULT LoadDaemonConf();
+     HRESULT InitDaemonLog();
+     HRESULT InitHtrace();
+-    HRESULT CheckBinPath(const char *binPath);
++    HRESULT CheckRuntimePath(const char *runtimePath);
++    HRESULT CheckConfigPath(const char *configPath);
+ 
+     void StoppingKeepAlive();
+     void StoppedKeepAlive();
+diff --git a/src/process/daemon/ock_service_adapter.cpp b/src/process/daemon/ock_service_adapter.cpp
+index 48f970b..31a7b1c 100644
+--- a/src/process/daemon/ock_service_adapter.cpp
++++ b/src/process/daemon/ock_service_adapter.cpp
+@@ -19,7 +19,7 @@ OckServiceArgs *OckServiceAdapter::CreateServiceArgs(const std::vector<std::stri
+     auto argKeys = argNames;
+     if (argKeys.empty()) {
+         using namespace ock::common::ConfConstant;
+-        argKeys = {"", MXMD_DAEMON_BINPATH.first, MXMD_SERVER_LOG_LEVEL.first};
++        argKeys = {"", MXMD_DAEMON_RUNTIME.first, MXMD_DAEMON_CONFIG.first, MXMD_SERVER_LOG_LEVEL.first};
+     }
+     for (auto &name : argKeys) {
+         auto config = Configuration::GetInstance();
+diff --git a/src/process/daemon/ock_service_manager.cpp b/src/process/daemon/ock_service_manager.cpp
+index 329ed0d..2bce3f8 100644
+--- a/src/process/daemon/ock_service_manager.cpp
++++ b/src/process/daemon/ock_service_manager.cpp
+@@ -28,7 +28,7 @@ OckServiceManager::~OckServiceManager()
+     }
+ }
+ 
+-HRESULT OckServiceManager::ServicePut(const std::vector<std::string> &services, const std::string &libHomePath)
++HRESULT OckServiceManager::ServicePut(const std::vector<std::string> &services, const std::string &libPath)
+ {
+     if ((services.size() < 1) || (services.size() > 2)) { // 2
+         DBG_LOGERROR("Services count should be within the range of [1, 2], size is: " << services.size());
+@@ -39,13 +39,13 @@ HRESULT OckServiceManager::ServicePut(const std::vector<std::string> &services,
+         OckTrimString(serviceName);
+         std::string lowerServiceName = serviceName;
+         transform(lowerServiceName.begin(), lowerServiceName.end(), lowerServiceName.begin(), ::tolower);
+-        std::string libPath = libHomePath + "/lib/lib" + lowerServiceName + ".so";
+-        if (libPath.size() > PATH_MAX) {
+-            DBG_LOGERROR("libPath size exceeds maximum limit.");
++        std::string serviceLibPath = libPath + "/lib" + lowerServiceName + ".so";
++        if (serviceLibPath.size() > PATH_MAX) {
++            DBG_LOGERROR("serviceLibPath size exceeds maximum limit.");
+             return HFAIL;
+         }
+ 
+-        OckServiceAdapter *adapter = new (std::nothrow) OckServiceAdapter(serviceName, libPath);
++        OckServiceAdapter *adapter = new (std::nothrow) OckServiceAdapter(serviceName, serviceLibPath);
+         if (adapter == nullptr) {
+             DBG_LOGERROR("Fail to create service adapter.");
+             return HFAIL;
+diff --git a/src/process/daemon/ock_service_manager.h b/src/process/daemon/ock_service_manager.h
+index 44ddad8..e5951bf 100644
+--- a/src/process/daemon/ock_service_manager.h
++++ b/src/process/daemon/ock_service_manager.h
+@@ -31,7 +31,7 @@ public:
+     using Service::ServiceStart;
+     using Service::ServiceUninitialize;
+ 
+-    HRESULT ServicePut(const std::vector<std::string> &services, const std::string &libHomePath);
++    HRESULT ServicePut(const std::vector<std::string> &services, const std::string &libPath);
+ 
+     HRESULT ServiceProcessArgs();
+ 
+diff --git a/src/security/cryptor/ubs_cryptor_handler.cpp b/src/security/cryptor/ubs_cryptor_handler.cpp
+index cea5ad0..bd585c4 100644
+--- a/src/security/cryptor/ubs_cryptor_handler.cpp
++++ b/src/security/cryptor/ubs_cryptor_handler.cpp
+@@ -13,6 +13,7 @@
+ #include <dlfcn.h>
+ #include <securec.h>
+ #include <sys/ipc.h>
++#include <array>
+ #include <fstream>
+ #include <sstream>
+ #include <string>
+@@ -20,10 +21,23 @@
+ #include "rack_mem_functions.h"
+ #include "system_adapter.h"
+ 
++const std::array<std::string, 2> DEFAULT_DECRYPT_LIB_PATHS = {
++    "/usr/local/ubs_mem/lib/libdecrypt.so",
++    "/usr/lib/ubs_mem/libdecrypt.so",
++};
++
+ ock::ubsm::UbsCryptorHandler::UbsCryptorHandler() noexcept : initialized{false} {}
+ 
+ ock::ubsm::UbsCryptorHandler::~UbsCryptorHandler() noexcept {}
+ 
++void ock::ubsm::UbsCryptorHandler::SetDecryptLibPath(const std::string &path)
++{
++    std::lock_guard<std::mutex> lock(decryptMutex);
++    if (!initialized.load()) {
++        decryptLibPath = path;
++    }
++}
++
+ int ock::ubsm::UbsCryptorHandler::Initialize() noexcept
+ {
+     if (initialized.load()) {
+@@ -217,9 +231,17 @@ char *DefaultDecrypt(const char *encrypted_data, size_t encrypted_len, size_t *p
+ int ock::ubsm::UbsCryptorHandler::LoadDecryptFunction() noexcept
+ {
+     DBG_LOGINFO("LoadDecryptFunction start.");
+-    static constexpr auto path = "/usr/local/ubs_mem/lib/libdecrypt.so";
++    const char *path = decryptLibPath.c_str();
++    if (decryptLibPath.empty()) {
++        for (const auto &candidate : DEFAULT_DECRYPT_LIB_PATHS) {
++            if (access(candidate.c_str(), F_OK) == 0) {
++                path = candidate.c_str();
++                break;
++            }
++        }
++    }
+     // 如果没有提供so,也需要支持，不进行解密操作，原样返回
+-    if (access(path, F_OK) != 0) {
++    if (strlen(path) == 0 || access(path, F_OK) != 0) {
+         DBG_LOGERROR("File not found: " << path << ", use default.");
+         decryptLibHandlePtr = DefaultDecrypt;
+         return 0;
+diff --git a/src/security/cryptor/ubs_cryptor_handler.h b/src/security/cryptor/ubs_cryptor_handler.h
+index f635014..e16cbdd 100644
+--- a/src/security/cryptor/ubs_cryptor_handler.h
++++ b/src/security/cryptor/ubs_cryptor_handler.h
+@@ -37,11 +37,13 @@ public:
+     int Decrypt(int domainId, const std::string &filePath, std::pair<char *, int> &result) noexcept;
+     void EraseDecryptData(char *data, int len) noexcept;
+     static int SetCryptorLogger(CryptorLogHandler logger) noexcept;
++    void SetDecryptLibPath(const std::string &path);
+     int LoadDecryptFunction() noexcept;
+ 
+ private:
+     std::atomic<bool> initialized;
+     std::mutex decryptMutex;
++    std::string decryptLibPath;
+     DecryptFunc decryptLibHandlePtr = nullptr;
+ };
+ } // namespace ock::ubsm
