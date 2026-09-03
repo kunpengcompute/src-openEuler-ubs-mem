@@ -1,0 +1,43 @@
+---
+version: 1.0.0
+
+project:
+  name: "mxmd_ut"
+  desc: "mxmd_ut project"
+  prod: null
+  team: null
+
+pipeline:
+  build:
+    #    - task: "compile_target"
+    #      exec: "bash ../../build.sh -t asan --ut on --cov on"
+    #      args: false
+    - task: "cmake_test"
+      args: false
+    - task: "install_test"
+      exec: ""
+      args: false
+    - task: "install_test"
+      exec: ""
+      args: false
+  run:
+    - task: "run_test"
+  report:
+    - task: "lcov_report"
+      exec: ""
+      args: false
+  clean:
+    - task: "clean_target"
+      exec: ""
+    - task: "clean"
+
+# 仅编译前依赖hdt_cmc_c_cpp生成的cmake
+components:
+  - type: "hdt_cmc_c_cpp"
+    repo: null
+    dest: null
+    manifest:
+      gtest: null
+      mockcpp: null
+      gcov: null
+      asan: null

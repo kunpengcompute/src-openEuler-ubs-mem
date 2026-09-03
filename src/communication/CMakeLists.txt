@@ -1,0 +1,7 @@
+TARGET_SECUREC_SHARE(ubs_mem_common_object)
+TARGET_HCOM(ubs_mem_common_object)
+target_include_directories(ubs_mem_sdk_object PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+add_subdirectory(adapter)
+add_subdirectory(ipc)
+add_subdirectory(rpc)

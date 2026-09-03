@@ -1,0 +1,4 @@
+target_include_directories(ubs_mem_common_object PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} UBS_MEM_SRCS)
+target_sources(ubs_mem_common_object PRIVATE ${UBS_MEM_SRCS})
+unset(UBS_MEM_SRCS)

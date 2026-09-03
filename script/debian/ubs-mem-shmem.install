@@ -1,0 +1,7 @@
+usr/local/ubs_mem/bin/ubsmd
+usr/local/ubs_mem/lib/libubsm_sdk.so
+usr/local/ubs_mem/lib/libubsmd.so
+usr/local/ubs_mem/config/ubsmd.conf
+usr/local/ubs_mem/include/ubs_mem.h
+usr/local/ubs_mem/include/ubs_mem_def.h
+usr/lib/systemd/system/ubsmd.service

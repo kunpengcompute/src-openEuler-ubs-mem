@@ -1,0 +1,30 @@
+#!/bin/bash
+set -e
+
+create_user_and_group() {
+    if ! getent group ubsmd > /dev/null; then
+        groupadd --system ubsmd
+    fi
+
+    if ! getent passwd ubsmd > /dev/null; then
+        useradd --system -g ubsmd --no-create-home --shell /sbin/nologin ubsmd
+    fi
+
+    usermod -a -G ubse ubsmd 2>/dev/null || true
+}
+
+stop_old_service() {
+    if [ -e /usr/lib/systemd/system/ubsmd.service ]; then
+        systemctl stop ubsmd.service 2>/dev/null || true
+        systemctl disable ubsmd.service 2>/dev/null || true
+        rm -f /usr/lib/systemd/system/ubsmd.service
+    fi
+    rm -f /tmp/matrix_mem_daemon.lock
+}
+
+case "$1" in
+    install|upgrade)
+        stop_old_service
+        create_user_and_group
+        ;;
+esac

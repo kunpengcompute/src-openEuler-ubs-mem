@@ -1,0 +1,44 @@
+Source: ubs-mem
+Section: admin
+Priority: optional
+Maintainer: Huawei Technologies Co., Ltd.
+Build-Depends: debhelper-compat (= 12),
+               cmake (>= 3.22),
+               make (>= 4.3),
+               g++ (>= 10.3),
+               gcc (>= 10.3),
+               ninja-build,
+               libboundscheck,
+               libnuma-dev,
+               libsystemd-dev,
+               libssl-dev,
+               ubs-comm-dev
+Standards-Version: 4.5.1
+Homepage: https://gitcode.com/src-openeuler/ubs-mem
+
+Package: ubs-mem
+Architecture: any
+Depends: ${misc:Depends},
+         ubs-mem-shmem (= ${binary:Version})
+Description: UBS Memory
+ UBS Memory daemon service.
+ Provides shared memory components for the UBS ecosystem.
+
+Package: ubs-mem-shmem
+Architecture: any
+Depends: libc6 (>= 2.31),
+         libstdc++6,
+         systemd,
+         adduser,
+         openssl,
+         libnuma1,
+         ubs-comm-lib,
+         ubs-engine,
+         ubs-engine-client-libs,
+         ${misc:Depends},
+         ${shlibs:Depends}
+Provides: ubs-mem-kshmem
+Replaces: ubs-mem-kshmem
+Conflicts: ubs-mem-kshmem
+Description: UBS-MEM Shared Memory subpackage
+ This package contains the shared memory components for ubs-mem.

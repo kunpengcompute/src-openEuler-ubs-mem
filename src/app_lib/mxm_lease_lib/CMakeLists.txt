@@ -1,0 +1,6 @@
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} MXM_LEASE_SRCS)
+target_sources(ubs_mem_sdk_object PRIVATE ${MXM_LEASE_SRCS})
+target_include_directories(ubs_mem_sdk_object PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+UNSET(MXM_LEASE_SRCS)
+add_subdirectory(borrow_app_meta_mgr)
+add_subdirectory(ipc_message_sender)

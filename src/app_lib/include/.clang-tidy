@@ -1,0 +1,19 @@
+# C SDK 特殊配置：继承根目录配置，仅禁用 C 风格相关的检查
+# C SDK 需要保持传统 C 风格（typedef、C 数组、snake_case 命名）
+
+HeaderFilterRegex: '.*'
+
+Checks:
+  # 禁用现代 C++ 检查（C SDK 允许传统 C 风格）
+  - -modernize-use-using              # 允许 typedef
+  - -modernize-avoid-c-arrays         # 允许 C 风格数组
+  - -modernize-pass-by-value          # 允许传统传值方式
+  - -modernize-use-nodiscard          # 允许不标记 [[nodiscard]]
+
+  # 禁用命名检查（C SDK 使用 snake_case）
+  - -readability-identifier-naming
+
+  # 禁用成员初始化检查（C 结构体风格）
+  - -cppcoreguidelines-pro-type-member-init
+
+WarningsAsErrors: 'bugprone-use-after-move'

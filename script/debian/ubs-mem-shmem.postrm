@@ -1,0 +1,34 @@
+#!/bin/bash
+set -e
+
+delete_semaphore() {
+    echo "Checking and deleting semaphores..."
+    while read -r line; do
+        semid=$(echo "$line" | awk '{print $1}')
+        owner=$(echo "$line" | awk '{print $2}')
+        if [ "$owner" = "ubsmd" ]; then
+            echo "Deleting semaphore $semid..."
+            if ! ipcrm -s $semid 2>/dev/null; then
+                echo "Failed to delete semaphore $semid"
+            else
+                echo "Deleted semaphore $semid"
+            fi
+        fi
+    done < <(ipcs -s 2>/dev/null | awk '/^[0-9]/ {print $2, $3, $4}')
+    echo "delete ubsmd semaphores finished"
+}
+
+remove_files() {
+    systemctl daemon-reload > /dev/null 2>&1 || true
+    rm -f /usr/lib/systemd/system/ubsmd.service
+    rm -rf /usr/local/ubs_mem
+    rm -f /dev/shm/ubsm_records
+    rm -rf /run/matrix/
+}
+
+if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
+    remove_files
+    delete_semaphore
+fi
+
+systemctl daemon-reload 2>/dev/null || true

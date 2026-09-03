@@ -1,0 +1,5 @@
+target_include_directories(ubs_mem_common_object PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(ubs_mem_common_object PUBLIC ${PROJECT_SOURCE_DIR}/src/common/hdagger/logger)
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} UBS_MEM_SRCS)
+target_sources(ubs_mem_common_object PRIVATE ${UBS_MEM_SRCS})
+unset(UBS_MEM_SRCS)

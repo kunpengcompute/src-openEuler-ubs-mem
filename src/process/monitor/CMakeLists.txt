@@ -1,0 +1,3 @@
+aux_source_directory(${CMAKE_CURRENT_LIST_DIR} UBSMEM_MONITOR_SRCS)
+target_sources(ubs_mem_daemon_object PRIVATE ${UBSMEM_MONITOR_SRCS})
+target_include_directories(ubs_mem_daemon_object PUBLIC ${CMAKE_CURRENT_LIST_DIR})

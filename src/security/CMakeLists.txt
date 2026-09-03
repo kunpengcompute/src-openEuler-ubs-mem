@@ -1,0 +1,2 @@
+add_subdirectory(certify)
+add_subdirectory(cryptor)

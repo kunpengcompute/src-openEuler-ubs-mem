@@ -1,0 +1,107 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2026. All rights reserved.
+
+ * ubs-mem is licensed under the Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *      http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ */
+#ifndef OCK_COMMON_COMMON_UTIL_FUNCTIONS_H
+#define OCK_COMMON_COMMON_UTIL_FUNCTIONS_H
+
+#include <regex.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <algorithm>
+#include <climits>
+#include <cmath>
+#include <cstring>
+#include <ctime>
+#include <fstream>
+#include <list>
+#include <random>
+#include <set>
+#include <sstream>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+#include <securec.h>
+#include "defines.h"
+
+namespace ock {
+namespace common {
+constexpr float EPSINON = 0.000001;
+
+void OckTrimString(std::string &str);
+std::string OckGetHostname();
+
+// filesystem function set
+bool OckFileDirExists(const std::string &path);
+bool OckFolderDirDelete(const std::string &oldPath);
+
+// handle string function set
+void SplitStr(const std::string &str, const std::string &separator, std::set<std::string> &result);
+void SplitStr(const std::string &str, const std::string &separator, std::vector<std::string> &result);
+void SplitStr(const std::string &str, const std::string &separator, std::list<std::string> &result);
+
+inline bool OckStol(const std::string &str, long &value)
+{
+    char *remain = nullptr;
+    errno = 0;
+    value = std::strtol(str.c_str(), &remain, 10); // 10 is decimal digits
+    if (remain == nullptr || strnlen(remain, PATH_MAX) > 0 ||
+        ((value == LONG_MAX || value == LONG_MIN) && errno == ERANGE)) {
+        return false;
+    } else if (value == 0 && str != "0") {
+        return false;
+    }
+    return true;
+}
+
+inline bool OckStof(const std::string &str, float &value)
+{
+    errno = 0;
+    value = std::strtof(str.c_str(), nullptr);
+    if ((value - HUGE_VALF) >= -EPSINON && (value - HUGE_VALF) <= EPSINON && errno == ERANGE) {
+        return false;
+    } else if ((value >= -EPSINON && value <= EPSINON) && (str != "0.0")) {
+        return false;
+    }
+    return true;
+}
+
+HRESULT CreateArgs(int &newArgc, char **&newArgv, const std::vector<std::string> &values);
+
+void DeleteStrArray(int count, char **&array);
+
+const std::unordered_map<std::string, bool> Str2Bool{{"0", false}, {"1", true}, {"false", false}, {"true", true}};
+
+inline bool IsBool(const std::string &str, bool &value)
+{
+    std::string tmp = str;
+    std::transform(tmp.begin(), tmp.end(), tmp.begin(), ::tolower);
+    if (Str2Bool.count(tmp) <= 0) {
+        return false;
+    }
+    value = Str2Bool.at(tmp);
+    return true;
+}
+
+inline bool GetRealPath(std::string &path)
+{
+    char realPath[PATH_MAX + 1] = {0};
+    if (path.size() > PATH_MAX || realpath(path.c_str(), realPath) == nullptr) {
+        return false;
+    }
+    path = std::string(realPath);
+    return true;
+}
+
+} // namespace common
+} // namespace ock
+
+#endif

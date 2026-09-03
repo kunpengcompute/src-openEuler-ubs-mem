@@ -1,0 +1,10 @@
+target_include_directories(ubs_mem_daemon_object PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} MXM_LEASE_SRCS)
+if (DEBUG_UT STREQUAL "ON" OR DEBUG_FUZZ STREQUAL "ON")
+    target_include_directories(ubs_mem_daemon_object SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/test/mxm-unit-tests/rack_com_stub)
+endif ()
+target_sources(ubs_mem_daemon_object PRIVATE ${MXM_LEASE_SRCS})
+
+target_include_directories(ubs_mem_daemon_object SYSTEM PUBLIC ${PROJECT_BINARY_DIR}/include)
+target_include_directories(ubs_mem_daemon_object PUBLIC ${PROJECT_SOURCE_DIR}/src/common/hdagger/)
+TARGET_SECUREC_SHARE(ubs_mem_daemon_object)
