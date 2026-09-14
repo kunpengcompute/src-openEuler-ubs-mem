@@ -25,23 +25,25 @@ override_dh_auto_test:
 override_dh_auto_install:
 	@echo ">>> Installing to debian tmp directories..."
 
-	install -Dm550 build/relwithdebinfo/output/bin/ubsmd \
+	install -Dm755 build/relwithdebinfo/output/bin/ubsmd \
 		debian/tmp/usr/bin/ubsmd
-	install -Dm440 build/relwithdebinfo/output/lib/libubsm_sdk.so \
-		debian/tmp/usr/lib/aarch64-linux-gnu/libubsm_sdk.so
-	install -Dm440 build/relwithdebinfo/output/lib/libubsmd.so \
-		debian/tmp/usr/lib/ubs_mem/libubsmd.so
-	install -Dm640 build/relwithdebinfo/output/config/ubsmd.conf \
+	install -Dm644 build/relwithdebinfo/output/lib/libubsm_sdk.so.1.0.0 \
+		debian/tmp/usr/lib/aarch64-linux-gnu/libubsm_sdk.so.1.0.0
+	ln -sf libubsm_sdk.so.1.0.0 debian/tmp/usr/lib/aarch64-linux-gnu/libubsm_sdk.so.1
+	ln -sf libubsm_sdk.so.1 debian/tmp/usr/lib/aarch64-linux-gnu/libubsm_sdk.so
+	install -Dm644 build/relwithdebinfo/output/lib/libubsmd.so \
+		debian/tmp/usr/lib/aarch64-linux-gnu/ubs_mem/libubsmd.so
+	install -Dm644 build/relwithdebinfo/output/config/ubsmd.conf \
 		debian/tmp/etc/ubs_mem/ubsmd.conf
-	install -Dm640 build/relwithdebinfo/output/include/ubs_mem.h \
+	install -Dm644 build/relwithdebinfo/output/include/ubs_mem.h \
 		debian/tmp/usr/include/ubs_mem/ubs_mem.h
-	install -Dm640 build/relwithdebinfo/output/include/ubs_mem_def.h \
+	install -Dm644 build/relwithdebinfo/output/include/ubs_mem_def.h \
 		debian/tmp/usr/include/ubs_mem/ubs_mem_def.h
 	install -Dm644 build/relwithdebinfo/output/script/ubsmd.service \
 		debian/tmp/usr/lib/systemd/system/ubsmd.service
 	sed -i \
-		-e "s|^Environment=.*|Environment=LD_LIBRARY_PATH=/usr/lib/ubs_mem:/usr/lib/aarch64-linux-gnu|" \
-		-e "s|^ExecStart=.*|ExecStart=/usr/bin/ubsmd --runtime=/usr/lib/ubs_mem --config=/etc/ubs_mem/ubsmd.conf|" \
+		-e "s|^Environment=.*|Environment=LD_LIBRARY_PATH=/usr/lib/aarch64-linux-gnu/ubs_mem:/usr/lib/aarch64-linux-gnu|" \
+		-e "s|^ExecStart=.*|ExecStart=/usr/bin/ubsmd --runtime=/usr/lib/aarch64-linux-gnu/ubs_mem --config=/etc/ubs_mem/ubsmd.conf|" \
 		debian/tmp/usr/lib/systemd/system/ubsmd.service
 
 override_dh_shlibdeps:
@@ -49,6 +51,3 @@ override_dh_shlibdeps:
 
 override_dh_installsystemd:
 	dh_installsystemd --no-start
-
-override_dh_fixperms:
-	@echo ">>> Skip dh_fixperms (perms set by install)"

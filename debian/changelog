@@ -1,7 +1,7 @@
 ubs-mem (1.0.0-13) unstable; urgency=medium
 
   * support arm64 packages and install files in the Debian filesystem layout
-  * preserve restricted ubsmd ownership and permissions while fixing lintian errors
+  * preserve restricted ubsmd ownership/permissions to fix lintian errors
   * pass runtime and configuration paths through a quilt patch
   * register the ldconfig trigger for the system library directory
   * preserve LF line endings for Debian quilt metadata

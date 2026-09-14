@@ -1,7 +1,6 @@
 etc/ubs_mem/ubsmd.conf
 usr/bin/ubsmd
-usr/include/ubs_mem/ubs_mem.h
-usr/include/ubs_mem/ubs_mem_def.h
-usr/lib/aarch64-linux-gnu/libubsm_sdk.so
-usr/lib/ubs_mem/libubsmd.so
+usr/lib/aarch64-linux-gnu/libubsm_sdk.so.1
+usr/lib/aarch64-linux-gnu/libubsm_sdk.so.1.0.0
+usr/lib/aarch64-linux-gnu/ubs_mem/libubsmd.so
 usr/lib/systemd/system/ubsmd.service
