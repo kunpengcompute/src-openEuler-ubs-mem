@@ -339,7 +339,7 @@ index cea5ad0..bd585c4 100644
  
 +const std::array<std::string, 2> DEFAULT_DECRYPT_LIB_PATHS = {
 +    "/usr/local/ubs_mem/lib/libdecrypt.so",
-+    "/usr/lib/ubs_mem/libdecrypt.so",
++    "/usr/lib/aarch64-linux-gnu/ubs_mem/libdecrypt.so",
 +};
 +
  ock::ubsm::UbsCryptorHandler::UbsCryptorHandler() noexcept : initialized{false} {}

@@ -15,11 +15,14 @@ create_user_and_group() {
 
 stop_old_service() {
     if [ -e /usr/lib/systemd/system/ubsmd.service ]; then
-        systemctl stop ubsmd.service 2>/dev/null || true
-        systemctl disable ubsmd.service 2>/dev/null || true
+        if command -v deb-systemd-invoke >/dev/null 2>&1; then
+            deb-systemd-invoke stop ubsmd.service >/dev/null 2>&1 || true
+        fi
+        if command -v deb-systemd-helper >/dev/null 2>&1; then
+            deb-systemd-helper disable ubsmd.service >/dev/null 2>&1 || true
+        fi
         rm -f /usr/lib/systemd/system/ubsmd.service
     fi
-    rm -f /tmp/matrix_mem_daemon.lock
 }
 
 case "$1" in

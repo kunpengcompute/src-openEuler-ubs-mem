@@ -1,0 +1,21 @@
+Description: Add SONAME versioning to libubsm_sdk shared library
+ Set VERSION/SOVERSION so the public shared library is built as
+ libubsm_sdk.so.1.0.0 with libubsm_sdk.so.1 SONAME, as required by
+ the UB package specification for libraries in the public multiarch
+ directory.
+Author: Yang Qi <yangqi124@h-partners.com>
+Forwarded: no
+Last-Update: 2026-09-11
+
+--- a/src/app_lib/CMakeLists.txt
++++ b/src/app_lib/CMakeLists.txt
+@@ -17,7 +17,8 @@ target_compile_definitions(ubs_mem_sdk_object PRIVATE UBS_MEM_SDK_OBJECT)
+ add_library(ubsm_sdk_shared SHARED)
+ target_link_libraries(ubsm_sdk_shared PUBLIC ubs_mem_sdk_object ubs_mem_comm_sdk_object)
+ target_link_libraries(ubsm_sdk_shared PUBLIC ubs_mem_common_object)
+-set_target_properties(ubsm_sdk_shared PROPERTIES OUTPUT_NAME "ubsm_sdk")
++set_target_properties(ubsm_sdk_shared PROPERTIES OUTPUT_NAME "ubsm_sdk"
++        VERSION 1.0.0 SOVERSION 1)
+
+ # 明确指定 libnuma 的库路径
+ find_library(NUMA_LIB numa PATHS /usr/lib64 /usr/local/lib/)
