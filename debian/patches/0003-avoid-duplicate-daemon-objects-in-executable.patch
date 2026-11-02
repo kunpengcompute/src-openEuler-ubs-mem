@@ -1,0 +1,20 @@
+Description: Keep daemon state in libubsmd instead of duplicating it in ubsmd
+ The daemon object library is already included in libubsmd. Linking the same
+ objects into the executable duplicates RecordStore and other daemon state.
+ When shared-library calls bind locally, for example with -Bsymbolic-functions,
+ startup and service recovery can access different RecordStore instances.
+ Link the executable only against libubsmd so both paths use its implementation.
+ Preserve the existing compiler and linker hardening options.
+Forwarded: no
+Last-Update: 2026-10-31
+
+--- a/src/process/daemon/CMakeLists.txt
++++ b/src/process/daemon/CMakeLists.txt
+@@ -25,7 +25,6 @@
+ # exe main.cpp
+ add_executable(ubsmd_bin main.cpp)
+ target_link_libraries(ubsmd_bin PUBLIC ubsmd_shared)
+-target_link_libraries(ubsmd_bin PUBLIC ubs_mem_daemon_object)
+ set_target_properties(ubsmd_bin PROPERTIES OUTPUT_NAME "ubsmd")
+ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pie")
+ target_link_options(ubsmd_bin

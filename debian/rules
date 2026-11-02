@@ -17,7 +17,7 @@ override_dh_auto_configure:
 override_dh_auto_build:
 	@echo ">>> Building project..."
 	DEB_MULTIARCH=$$(dpkg-architecture -qDEB_HOST_MULTIARCH); \
-	bash build.sh -t relwithdebinfo -f "-DARCH_LIB_DIR=/usr/lib/$$DEB_MULTIARCH -DSYS_LIB_DIR=/usr/lib"
+	bash build.sh -t relwithdebinfo -f "-DARCH_LIB_DIR=/usr/lib/$$DEB_MULTIARCH -DSYS_LIB_DIR=/usr/lib/$$DEB_MULTIARCH"
 
 override_dh_auto_test:
 	@echo ">>> Skip test"
