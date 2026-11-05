@@ -1,3 +1,11 @@
+ubs-mem (1.0.0-14) UNRELEASED; urgency=medium
+
+  * add SONAME versioning to the libubsm-sdk library and ship dev packages
+  * fix duplicate daemon singleton state between ubsmd and libubsmd.so
+  * reuse the multiarch directory /usr/lib/$DEB_MULTIARCH for SYS_LIB_DIR
+
+ -- Yang Qi <yangqi124@h-partners.com>  Thu, 05 Nov 2026 00:00:00 +0800
+
 ubs-mem (1.0.0-13) unstable; urgency=medium
 
   * support arm64 packages and install files in the Debian filesystem layout
